@@ -12,7 +12,8 @@ fn main() {
     let mut tasks: Vec<Task> = Vec::new();
     loop {
         println!("\n1: Add Task");
-        println!("2: View tasks\n");
+        println!("2: View tasks");
+        println!("3: Remove task\n");
         match read_input("Choose an option: ").as_str() {
             "1" => {
                 let task = Task {
@@ -23,11 +24,39 @@ fn main() {
                 tasks.push(task);
                 },
             "2" => {
-                show(tasks);
+                show(&tasks);
             }
             "3" => {
-                read_input("Choose a task # to delete (0 to exit): ");
-                // à continuer!
+                show(&tasks);
+                println!("");
+                let index: usize = read_input("Choose a task # to delete (0 to exit): ").parse().unwrap();
+                let max_index = tasks.len();
+                if index > max_index {
+                    println!("Nope");
+                }
+                else {
+                    println!("Removed {} from task list", tasks[index-1].name);
+                    tasks.remove(index-1);
+                }
+            }
+            "4" => {
+                show(&tasks);
+                println!("");
+                let index: usize = read_input("Choose a task # to delete (0 to exit): ").parse().unwrap();
+                let max_index = tasks.len();
+                if index > max_index {
+                    println!("Nope");
+                }
+                else {
+                    let task = &tasks[index-1];
+                    if task.completed {
+                        println!("Set {} to Incomplete", &task.name);
+                        task.completed = !task.completed
+                    }
+                    else {
+                        println!("Set {} to Complete", &task.name);
+                    }
+                }
             }
             _ => break,
         }
@@ -35,7 +64,7 @@ fn main() {
 }
 
 
-fn show(mut tasks: Vec<Task>) {
+fn show(tasks: &Vec<Task>) {
     println!("");
     for (i, task) in tasks.iter().enumerate() {
         if i > 0 {
@@ -45,7 +74,6 @@ fn show(mut tasks: Vec<Task>) {
             println!("| {} - {} ({})", i+1, task.name, if task.completed {"✅"} else {"❌"})
         }
     }
-    println!("");
 }
 
 
@@ -58,5 +86,3 @@ fn read_input(text: &str) -> String {
     io::stdin().read_line(&mut input).unwrap();
     input.trim().to_string()
 }
-
-
