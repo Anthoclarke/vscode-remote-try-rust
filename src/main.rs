@@ -1,60 +1,80 @@
 use std::io::{self,Write};
+use serde::{Serialize, Deserialize};
 
 
-
-
+#[derive(Serialize, Deserialize)]
 struct Task {
     name: String,
     completed: bool,
 }
 
 fn main() {
-    let mut tasks: Vec<Task> = Vec::new();
     loop {
-        println!("\n1: Add Task");
+        println!("\n1: Add task");
         println!("2: View tasks");
-        println!("3: Remove task\n");
+        println!("3: Remove task");
+        println!("4: Toggle completion of task\n");
         match read_input("Choose an option: ").as_str() {
             "1" => {
-                let task = Task {
-                    name: read_input("Task name: "),
-                    completed: false
-                };
-                println!("Task \"{}\" has been added to the list", &task.name);
-                tasks.push(task);
-                },
-            "2" => {
-                show(&tasks);
+                let json = serde_json::to_string_prettify(Task {
+                    name: read_input("Enter task name: "),
+                    completed: false,
+                }).unwrap();
+                println!("Task has been successfully added!");
             }
-            "3" => {
-                show(&tasks);
-                println!("");
-                let index: usize = read_input("Choose a task # to delete (0 to exit): ").parse().unwrap();
-                let max_index = tasks.len();
-                if index > max_index {
-                    println!("Nope");
+            "2" => {
+                if tasks.is_empty() {
+                    println!("No tasks in here yet!");
                 }
                 else {
-                    println!("Removed {} from task list", tasks[index-1].name);
-                    tasks.remove(index-1);
+                    show(&tasks);
+                }
+            }
+            "3" => {
+                let max_index = tasks.len();
+                if max_index == 0 {
+                    println!("No tasks in here yet!");
+                }
+                else {
+                    show(&tasks);
+                    let input = read_input("\nChoose a task # to delete: ");
+                    let index: usize = match input.parse() {
+                        Ok(num) => num,
+                        Err(_) => { 
+                            println!("Invalid number");
+                            continue;
+                        }
+                    };
+                    if index < 1 || index > max_index {
+                        println!("Invalid Number");
+                    }
+                    else {
+                        println!("Removed {} from task list", tasks[index-1].name);
+                        tasks.remove(index-1);
+                    }
                 }
             }
             "4" => {
-                show(&tasks);
-                println!("");
-                let index: usize = read_input("Choose a task # to delete (0 to exit): ").parse().unwrap();
                 let max_index = tasks.len();
-                if index > max_index {
-                    println!("Nope");
+                if max_index == 0 {
+                    println!("No tasks in here yet!");
                 }
                 else {
-                    let task = &tasks[index-1];
-                    if task.completed {
-                        println!("Set {} to Incomplete", &task.name);
-                        task.completed = !task.completed
+                    show(&tasks);
+                    let input = read_input("\nChoose a task # to toggle: ");
+                    let index: usize = match input.parse() {
+                        Ok(num) => num,
+                        Err(_) => { 
+                            println!("Invalid number");
+                            continue;
+                        }
+                    };
+                    if index < 1 || index > max_index {
+                        println!("Invalid task in list");
                     }
                     else {
-                        println!("Set {} to Complete", &task.name);
+                        let task = &mut tasks[index-1];
+                        task.completed = !task.completed;
                     }
                 }
             }
@@ -64,7 +84,7 @@ fn main() {
 }
 
 
-fn show(tasks: &Vec<Task>) {
+fn show(tasks: &[Task]) {
     println!("");
     for (i, task) in tasks.iter().enumerate() {
         if i > 0 {
